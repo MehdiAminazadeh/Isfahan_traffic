@@ -1,0 +1,6 @@
+{
+  "located": 30,
+  "eligible": 74,
+  "coverage": 0.40540540540540543,
+  "note": "OpenStreetMap/Nominatim coordinates are cached candidates and should be verified in municipal GIS or QGIS."
+}

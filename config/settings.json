@@ -1,0 +1,24 @@
+{
+  "source_root": "..",
+  "timezone": "Asia/Tehran",
+  "minimum_detector_coverage": 0.5, 
+  "trusted_detector_coverage": 0.8,
+  "trusted_temporal_coverage": 0.8,
+  "functional_graph_neighbors": 4, 
+  "functional_graph_min_correlation": 0.55,
+  "geocode_bbox": [32.55, 51.55, 32.80, 51.85],
+  "geocode_delay_seconds": 1.1,
+  "map_center": [32.65, 51.67],
+  "external_context": {
+    "start_date": "2018-10-01",
+    "end_date": "2021-01-31",
+    "isfahan_latitude": 32.6546,
+    "isfahan_longitude": 51.6680,
+    "timezone": "Asia/Tehran",
+    "weather_model": "era5",
+    "ramadan_approximate_windows": [
+      ["2019-05-06", "2019-06-04"],
+      ["2020-04-24", "2020-05-23"]
+    ]
+  }
+}

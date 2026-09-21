@@ -1,0 +1,19 @@
+__pycache__/
+*.py[cod]
+.venv/
+env/
+.env
+.env.*
+!.env.example
+.vscode/
+.pytest_cache/
+*.egg-info/
+build/
+dist/
+.ipynb_checkpoints/
+data/processed/15min/
+data/external/raw/
+data/metadata/geocode_cache.json
+outputs/_report_build/
+راهنماي شماره تقاطع ها/
+~$*

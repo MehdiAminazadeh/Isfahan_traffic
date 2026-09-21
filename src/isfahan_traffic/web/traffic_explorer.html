@@ -1,0 +1,886 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>Isfahan traffic explorer</title>
+  <style>
+    :root { --ink:#202e32; --muted:#647073; --paper:#f6f5f0; --white:#fffefa; --line:#dedfd6; --teal:#17685f; --teal-soft:#e9f0e9; --ochre:#ab783d; --radius:14px; --nav-width:254px; }
+    * { box-sizing:border-box; }
+    html { scroll-behavior:smooth; }
+    body { margin:0; background:var(--paper); color:var(--ink); font:15px/1.6 "Segoe UI",Arial,sans-serif; }
+    button,input,select { font:inherit; }
+    button,a,input,select { -webkit-tap-highlight-color:transparent; }
+    a { color:var(--teal); text-underline-offset:3px; }
+    button { cursor:pointer; }
+    a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible { outline:3px solid #b57637; outline-offset:4px; }
+    button:disabled { cursor:wait; opacity:.55; }
+    h1,h2,h3,p { margin:0; }
+    h1 { font-size:clamp(28px,3.2vw,42px); line-height:1.15; font-weight:650; letter-spacing:-1.3px; max-width:850px; }
+    h2 { font-size:23px; line-height:1.3; font-weight:650; letter-spacing:-.5px; }
+    h3 { font-size:18px; line-height:1.4; font-weight:650; letter-spacing:-.25px; }
+    h1:focus { outline:none; }
+    .skip { position:fixed; top:8px; left:12px; z-index:30; padding:9px 15px; background:var(--white); transform:translateY(-150%); }
+    .skip:focus { transform:none; }
+    .topbar { height:76px; position:fixed; inset:0 0 auto; z-index:20; display:flex; align-items:center; justify-content:space-between; gap:20px; padding:0 32px; background:var(--white); border-bottom:1px solid var(--line); }
+    .brand { display:flex; align-items:center; gap:13px; text-decoration:none; color:var(--ink); font-weight:650; letter-spacing:-.3px; }
+    .brand-mark { width:31px; height:31px; display:grid; place-items:center; color:var(--teal); }
+    .brand-mark svg { width:31px; height:31px; }
+    .brand-subtitle { color:var(--muted); font-size:12px; font-weight:400; line-height:1.1; letter-spacing:0; }
+    .brand-title { line-height:1.45; font-size:16px; }
+    .archive { display:flex; align-items:center; gap:9px; color:var(--muted); font-size:12px; }
+    .archive-dot { width:7px; height:7px; border-radius:50%; background:var(--teal); }
+    .menu-toggle { display:none; align-items:center; justify-content:center; background:none; border:1px solid var(--line); border-radius:8px; width:40px; height:40px; color:var(--ink); }
+    .sidebar { position:fixed; top:76px; left:0; bottom:0; z-index:15; width:var(--nav-width); padding:31px 20px 25px; display:flex; flex-direction:column; overflow-y:auto; border-right:1px solid var(--line); background:var(--paper); }
+    .nav-label,.eyebrow { font-size:11px; letter-spacing:1.6px; text-transform:uppercase; font-weight:700; color:var(--muted); }
+    .nav-label { padding:0 12px; margin-bottom:16px; }
+    .nav-home,.nav-section-toggle { display:flex; align-items:center; gap:12px; width:100%; min-height:45px; border:0; border-radius:8px; padding:11px 12px; color:var(--ink); background:none; font-size:14px; text-decoration:none; text-align:left; }
+    .nav-home:hover,.nav-section-toggle:hover { background:#eceee7; }
+    .nav-home[aria-current="page"] { background:var(--teal-soft); color:var(--teal); font-weight:600; }
+    .nav-section { margin-top:4px; }
+    .nav-section-toggle.active { color:var(--teal); font-weight:600; }
+    .nav-icon { width:18px; height:18px; flex:none; }
+    .nav-chevron { margin-left:auto; width:14px; height:14px; transition:transform .15s; }
+    .nav-section-toggle[aria-expanded="true"] .nav-chevron { transform:rotate(90deg); }
+    .nav-children { margin:3px 0 10px 21px; padding-left:16px; border-left:1px solid #d1d7cb; }
+    .nav-children[hidden] { display:none; }
+    .nav-child { display:block; padding:8px 9px; border-radius:6px; text-decoration:none; color:var(--muted); font-size:12px; line-height:1.5; }
+    .nav-child:hover { color:var(--ink); background:#eceee7; }
+    .nav-child[aria-current="page"] { background:var(--teal-soft); color:var(--teal); font-weight:650; }
+    .nav-footer { margin-top:auto; padding:32px 12px 0; font-size:12px; color:var(--muted); }
+    .nav-footer strong { display:block; font-weight:600; color:var(--ink); margin-bottom:4px; }
+    .nav-footer a { display:inline-block; margin-top:12px; }
+    .scrim { display:none; }
+    main { margin-left:var(--nav-width); padding:110px 44px 48px; max-width:1800px; min-width:0; }
+    .content { max-width:1200px; margin:0 auto; min-width:0; }
+    .breadcrumbs { display:flex; align-items:center; gap:8px; flex-wrap:wrap; min-height:22px; color:var(--muted); font-size:12px; margin-bottom:27px; }
+    .breadcrumbs a { text-decoration:none; color:var(--muted); }
+    .breadcrumbs a:hover { color:var(--teal); text-decoration:underline; }
+    .breadcrumbs .separator { color:#a0a9a2; }
+    .intro { margin-bottom:28px; }
+    .intro .eyebrow { color:var(--teal); margin-bottom:13px; }
+    .intro p { color:var(--muted); font-size:16px; line-height:1.7; max-width:760px; margin-top:15px; }
+    .period-tag { display:inline-flex; align-items:center; gap:7px; font-size:12px; color:var(--muted); margin-top:18px; }
+    .period-tag svg { width:15px; height:15px; }
+    .metrics { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:15px; margin:29px 0 18px; }
+    .metric { position:relative; display:block; border:1px solid var(--line); border-radius:var(--radius); background:var(--white); padding:22px 23px; min-width:0; text-decoration:none; color:var(--ink); transition:border-color .15s; }
+    a.metric:hover { border-color:#a3b5a8; }
+    .metric-value { display:block; font-size:clamp(29px,3vw,39px); font-weight:600; letter-spacing:-1.3px; line-height:1.2; }
+    .metric-label { display:block; font-size:13px; font-weight:600; margin-top:10px; }
+    .metric-detail { display:block; color:var(--muted); font-size:12px; line-height:1.6; margin-top:6px; max-width:240px; }
+    .metric-arrow { position:absolute; right:21px; top:25px; width:17px; height:17px; color:var(--teal); }
+    .data-note { display:flex; align-items:flex-start; gap:10px; font-size:12px; color:var(--muted); padding:0 3px; }
+    .data-note svg { flex:none; width:15px; height:15px; margin-top:3px; }
+    .section-heading { display:flex; align-items:baseline; justify-content:space-between; gap:20px; margin:37px 0 17px; }
+    .section-heading p { color:var(--muted); font-size:12px; }
+    .section-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; }
+    .section-card { min-width:0; display:flex; flex-direction:column; padding:23px 25px 20px; min-height:200px; border:1px solid var(--line); border-radius:var(--radius); background:var(--white); text-decoration:none; color:var(--ink); transition:background .15s,border-color .15s,transform .15s; }
+    .section-card:hover { border-color:#9fb5a6; background:#fff; transform:translateY(-2px); }
+    .card-top { display:flex; justify-content:space-between; align-items:center; margin-bottom:19px; }
+    .section-number { font-size:11px; font-weight:600; color:var(--muted); font-variant-numeric:tabular-nums; letter-spacing:.5px; }
+    .section-icon { display:grid; place-items:center; height:32px; width:32px; border-radius:9px; background:var(--teal-soft); color:var(--teal); }
+    .section-icon svg { width:18px; height:18px; }
+    .section-card p { color:var(--muted); font-size:13px; margin-top:8px; margin-bottom:18px; line-height:1.7; max-width:480px; }
+    .card-bottom { display:flex; align-items:center; justify-content:space-between; gap:14px; color:var(--teal); font-size:12px; font-weight:600; margin-top:auto; }
+    .card-bottom svg { width:17px; height:17px; }
+    .chart-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; margin-top:25px; }
+    .chart-card { display:flex; flex-direction:column; min-width:0; padding:23px 25px; background:var(--white); border:1px solid var(--line); border-radius:var(--radius); text-decoration:none; color:var(--ink); min-height:190px; transition:border-color .15s,transform .15s; }
+    .chart-card:hover { border-color:#9fb5a6; transform:translateY(-2px); }
+    .chart-card .chart-index { font-size:11px; color:var(--muted); margin-bottom:14px; }
+    .chart-card p { font-size:13px; color:var(--muted); line-height:1.7; margin:10px 0 20px; }
+    .takeaway { display:flex; align-items:flex-start; gap:14px; border-left:3px solid var(--teal); background:var(--teal-soft); padding:17px 22px; margin:25px 0 22px; border-radius:0 9px 9px 0; }
+    .takeaway svg { width:19px; height:19px; flex:none; margin-top:3px; color:var(--teal); }
+    .takeaway-label { font-size:11px; font-weight:700; color:var(--teal); letter-spacing:.6px; margin-bottom:4px; }
+    .takeaway p { font-size:14px; line-height:1.7; max-width:950px; }
+    .chart-panel { min-width:0; background:var(--white); border:1px solid var(--line); border-radius:var(--radius); overflow:hidden; }
+    .chart-toolbar { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:13px; padding:17px 22px; border-bottom:1px solid #ecece5; min-height:68px; }
+    .chart-toolbar-hint { font-size:12px; color:var(--muted); }
+    .chart-actions { display:flex; gap:8px; flex-wrap:wrap; }
+    .quiet-button { display:inline-flex; align-items:center; justify-content:center; gap:7px; padding:7px 11px; border:1px solid var(--line); border-radius:7px; background:var(--white); color:var(--ink); font-size:12px; text-decoration:none; }
+    .quiet-button:hover { border-color:#9caf9f; background:#f4f6ef; }
+    .quiet-button svg { width:14px; height:14px; }
+    .chart-frame { width:100%; height:510px; min-width:0; }
+    .chart-status { color:var(--muted); font-size:12px; padding:0 22px; }
+    .chart-status:empty { display:none; }
+    .chart-status:not(:empty) { padding-bottom:16px; }
+    .chart-guides { display:grid; grid-template-columns:1.2fr 1fr; gap:30px; margin:24px 2px; }
+    .guide h2 { font-size:14px; letter-spacing:0; margin-bottom:7px; }
+    .guide p { color:var(--muted); font-size:13px; line-height:1.8; }
+    .guide + .guide { border-left:1px solid var(--line); padding-left:30px; }
+    .source-details { border-top:1px solid var(--line); padding-top:14px; margin-top:25px; font-size:12px; color:var(--muted); }
+    .source-details summary { width:fit-content; cursor:pointer; color:var(--ink); font-weight:600; padding:3px 0; }
+    .source-details p { padding:13px 0 3px; line-height:1.9; white-space:pre-line; }
+    .related { display:flex; justify-content:space-between; gap:20px; margin-top:28px; flex-wrap:wrap; font-size:12px; }
+    .related a { text-decoration:none; display:inline-flex; align-items:center; gap:7px; }
+    .related a:hover { text-decoration:underline; }
+    .related svg { height:15px; width:15px; }
+    .lookup { margin-top:33px; padding:24px; border:1px solid var(--line); background:var(--white); border-radius:var(--radius); }
+    .lookup-top { display:flex; justify-content:space-between; align-items:flex-start; gap:24px; margin-bottom:20px; }
+    .lookup h2 { font-size:19px; }
+    .lookup p { font-size:12px; color:var(--muted); margin-top:6px; max-width:570px; }
+    .search-label { display:block; color:var(--muted); font-size:11px; margin-bottom:5px; }
+    .search-input { width:250px; max-width:100%; background:#fff; color:var(--ink); border:1px solid #cdd3c9; border-radius:7px; padding:9px 12px; font-size:13px; }
+    .table-wrap { overflow-x:auto; }
+    table { width:100%; border-collapse:collapse; font-size:12px; }
+    th { color:var(--muted); font-weight:500; font-size:11px; padding:10px 12px; border-bottom:1px solid var(--line); text-align:left; white-space:nowrap; }
+    td { padding:12px; border-bottom:1px solid #eeeee7; vertical-align:middle; }
+    tbody tr:last-child td { border-bottom:0; }
+    td:last-child,th:last-child { text-align:right; }
+    .junction-name { font-weight:600; }
+    .junction-id { color:var(--muted); font-variant-numeric:tabular-nums; }
+    .change { font-variant-numeric:tabular-nums; }
+    .lookup-summary { margin-top:12px; font-size:11px; color:var(--muted); }
+    .lookup-empty { padding:18px 0; color:var(--muted); font-size:13px; }
+    .notes-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px 25px; margin-top:18px; }
+    .note { border-top:1px solid var(--line); padding-top:16px; }
+    .note h3 { font-size:14px; margin-bottom:7px; }
+    .note p { color:var(--muted); font-size:13px; line-height:1.8; }
+    .variant-control { display:flex; align-items:center; gap:9px; font-size:12px; color:var(--muted); }
+    .variant-control select { max-width:280px; padding:7px 27px 7px 10px; border:1px solid var(--line); border-radius:6px; background:var(--white); color:var(--ink); }
+    .page-footer { display:flex; justify-content:space-between; flex-wrap:wrap; gap:15px; border-top:1px solid var(--line); margin-top:39px; padding-top:17px; color:var(--muted); font-size:11px; }
+    .page-footer a { text-decoration:none; }
+    .developer-link { font-family:Consolas,"Courier New",monospace; font-size:11px; }
+    .developer-link[aria-current="page"] { font-weight:700; }
+    .developer-tabs { display:flex; gap:5px; padding:5px; background:#e9ece4; border-radius:10px; width:fit-content; max-width:100%; margin:25px 0; }
+    .developer-tab { display:block; padding:9px 18px; color:var(--muted); font-size:13px; text-decoration:none; border-radius:7px; }
+    .developer-tab[aria-selected="true"] { color:var(--ink); background:var(--white); box-shadow:0 1px 4px #202e3210; font-weight:600; }
+    .developer-panel { min-width:0; }
+    .developer-panel code,.developer-panel pre { font-family:Consolas,"Courier New",monospace; font-size:12px; }
+    .developer-panel code { overflow-wrap:anywhere; }
+    .developer-panel pre { margin:12px 0 0; max-height:310px; overflow:auto; padding:17px; background:#edf0e9; border:1px solid var(--line); border-radius:8px; line-height:1.8; tab-size:2; }
+    .developer-intro { font-size:13px; color:var(--muted); margin-bottom:23px; }
+    .pipeline-list { display:grid; gap:13px; }
+    .pipeline-step { display:grid; grid-template-columns:36px minmax(0,1fr); gap:16px; border:1px solid var(--line); border-radius:12px; background:var(--white); padding:22px; }
+    .pipeline-number { display:grid; place-items:center; width:34px; height:34px; border-radius:8px; background:var(--teal-soft); color:var(--teal); font:12px Consolas,monospace; }
+    .pipeline-step h2 { font-size:16px; letter-spacing:0; }
+    .pipeline-step p { color:var(--muted); font-size:13px; margin:7px 0 14px; }
+    .pipeline-id { display:block; color:var(--teal); margin-bottom:5px; }
+    .io-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+    .io-label { display:block; color:var(--muted); font-size:10px; text-transform:uppercase; letter-spacing:1px; margin-bottom:7px; }
+    .io-grid code { display:block; color:var(--ink); margin:3px 0; font-size:11px; }
+    .developer-box { padding:23px; border:1px solid var(--line); border-radius:12px; background:var(--white); min-width:0; }
+    .developer-box h2 { font-size:19px; margin-bottom:8px; }
+    .developer-box p { font-size:13px; color:var(--muted); }
+    .developer-table th,.developer-table td { vertical-align:top; }
+    .developer-table th:last-child,.developer-table td:last-child { text-align:left; }
+    .developer-table td { overflow-wrap:anywhere; }
+    .developer-table .field-name { min-width:160px; }
+    .developer-table .field-value { max-width:420px; }
+    .dataset-control { display:flex; align-items:flex-end; gap:20px; justify-content:space-between; flex-wrap:wrap; margin-bottom:22px; }
+    .dataset-control label { font-size:12px; color:var(--muted); display:block; margin-bottom:6px; }
+    .dataset-control select { max-width:100%; min-width:250px; padding:10px 34px 10px 12px; background:var(--white); border:1px solid #bdcabe; border-radius:7px; color:var(--ink); font:12px Consolas,monospace; }
+    .dataset-count { font-size:12px; color:var(--muted); }
+    .sample-records { margin-top:24px; }
+    .sample-records h3 { font-size:14px; margin-bottom:9px; }
+    .sample-record { border-top:1px solid var(--line); padding:12px 0; font-size:12px; }
+    .sample-record summary { cursor:pointer; color:var(--ink); font-weight:600; width:fit-content; }
+    .rules-table { margin-top:16px; }
+    .validation-summary { display:flex; align-items:flex-start; gap:14px; padding:20px; margin-bottom:21px; border:1px solid var(--line); border-radius:10px; background:var(--teal-soft); }
+    .status-badge { padding:3px 9px; background:var(--white); border-radius:5px; color:var(--teal); font-size:12px; font-weight:600; white-space:nowrap; }
+    .status-badge.failed { color:#a04635; }
+    .validation-summary h2 { font-size:16px; margin-bottom:5px; letter-spacing:0; }
+    .validation-summary p { font-size:12px; color:var(--muted); }
+    .validation-caveats { padding-left:18px; font-size:13px; color:var(--muted); line-height:1.9; }
+    .fatal { margin:130px auto 30px; max-width:600px; padding:28px; background:var(--white); border:1px solid var(--line); border-radius:var(--radius); }
+    noscript { display:block; margin:110px 30px 30px; padding:20px; }
+    @media (min-width:1700px) { main { margin-right:auto; margin-left:auto; padding-left:calc(var(--nav-width) + 44px); } }
+    @media (max-width:1150px) { :root { --nav-width:220px; } .topbar { padding:0 24px; } .sidebar { padding-right:14px; padding-left:14px; } main { padding:108px 28px 40px; } .metric { padding:21px 18px; } .metric-arrow { right:16px; } .metric-value { font-size:32px; } .chart-guides { gap:22px; } .guide + .guide { padding-left:22px; } }
+    @media (max-width:850px) { .topbar { height:68px; padding:0 20px; } .archive { display:none; } .menu-toggle { display:flex; } .sidebar { top:68px; width:280px; transform:translateX(-100%); transition:transform .18s; z-index:25; border-right:1px solid var(--line); box-shadow:12px 0 40px #202e3210; } .nav-open .sidebar { transform:translateX(0); } .nav-open .scrim { display:block; position:fixed; inset:68px 0 0; z-index:24; background:#202e3245; border:0; padding:0; width:100%; } main { margin-left:0; padding:94px 24px 30px; } .breadcrumbs { margin-bottom:24px; } .lookup-top { flex-wrap:wrap; } .lookup-search { flex:1; min-width:200px; } .search-input { width:100%; } }
+    @media (max-width:580px) { body { font-size:14px; } .topbar { padding:0 16px; } .brand-title { font-size:15px; } .brand-subtitle { font-size:11px; } main { padding:90px 17px 25px; } h1 { font-size:31px; letter-spacing:-.8px; } .intro p { font-size:14px; } .intro { margin-bottom:21px; } .metrics { gap:9px; grid-template-columns:1fr; margin-top:23px; } .metric { padding:17px 19px; display:grid; grid-template-columns:105px minmax(0,1fr); column-gap:18px; align-items:center; } .metric-value { grid-row:1 / 3; font-size:31px; } .metric-label { margin-top:0; padding-right:16px; } .metric-detail { margin-top:4px; max-width:none; } .metric-arrow { top:19px; right:15px; width:14px; } .section-grid,.chart-grid,.notes-grid { grid-template-columns:1fr; gap:12px; } .section-card { min-height:180px; padding:20px 22px; } .section-heading { margin-top:29px; align-items:flex-start; } .section-heading p { display:none; } h2 { font-size:21px; } .chart-card { min-height:175px; padding:21px; } .takeaway { padding:15px 17px; gap:10px; } .takeaway p { font-size:13px; } .chart-toolbar { padding:13px 14px; } .chart-toolbar-hint { width:100%; } .chart-frame { height:430px; } .chart-guides { grid-template-columns:1fr; gap:19px; margin:21px 1px; } .guide + .guide { padding:17px 0 0; border-left:0; border-top:1px solid var(--line); } .lookup { padding:20px 16px; } .lookup-top { gap:16px; } td,th { padding-left:8px; padding-right:8px; } .notes-grid { gap:22px; } .variant-control { flex-wrap:wrap; } .variant-control select { max-width:100%; } .page-footer { margin-top:30px; } .developer-tab { padding:8px 13px; font-size:12px; } .pipeline-step { padding:17px; grid-template-columns:27px minmax(0,1fr); gap:12px; } .pipeline-number { width:27px; height:27px; } .io-grid { grid-template-columns:1fr; gap:11px; } .developer-box { padding:18px 15px; } .dataset-control select { min-width:0; width:100%; } .dataset-control > div { min-width:0; max-width:100%; } .validation-summary { padding:16px; flex-wrap:wrap; } }
+    @media (prefers-reduced-motion:reduce) { html { scroll-behavior:auto; } *,*::before,*::after { transition:none!important; } }
+    @media print { .topbar,.sidebar,.scrim,.breadcrumbs,.chart-actions,.related,.page-footer,.skip { display:none!important; } main { margin:0; padding:0; } body { background:white; } .chart-panel,.takeaway { break-inside:avoid; } .chart-frame { height:430px; } }
+  </style>
+</head>
+<body>
+  <a class="skip" href="#main-content">Skip to analysis</a>
+  <header class="topbar">
+    <a class="brand" href="#/" aria-label="Isfahan traffic overview">
+      <span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none"><path d="M3 11h9V2m8 0v9h9M3 21h9v9m8 0v-9h9" stroke="currentColor" stroke-width="3"/><circle cx="16" cy="16" r="3.2" fill="currentColor"/></svg></span>
+      <span><span class="brand-title">Isfahan traffic</span><br><span class="brand-subtitle">Explore the analysis</span></span>
+    </a>
+    <div class="archive"><span class="archive-dot" aria-hidden="true"></span><span id="archive-period"></span></div>
+    <button class="menu-toggle" id="menu-toggle" aria-label="Open navigation" aria-controls="sidebar" aria-expanded="false"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
+  </header>
+  <button class="scrim" id="scrim" tabindex="-1" aria-label="Close navigation"></button>
+  <aside class="sidebar" id="sidebar">
+    <div class="nav-label">Analysis</div>
+    <nav id="navigation" aria-label="Analysis sections"></nav>
+    <div class="nav-footer"><strong>Read the data with care</strong><span>Some months and junctions have gaps. Check coverage before comparing.</span><br><a href="#/quality">About the records <span aria-hidden="true">↗</span></a><br><a class="developer-link" id="developer-link" href="#/developer/pipeline">&lt;/&gt; Developer workspace</a></div>
+  </aside>
+  <main id="main-content" tabindex="-1"><div class="content" id="content"></div></main>
+  <noscript>This traffic explorer needs JavaScript to open the analysis sections and charts. Enable JavaScript, then reopen this file.</noscript>
+  <script id="app-data" type="application/json">__APP_DATA__</script>
+  <script>__PLOTLY_JS__</script>
+  <script>
+    (() => {
+      "use strict";
+      const content = document.getElementById("content");
+      let app;
+      try {
+        app = JSON.parse(document.getElementById("app-data").textContent);
+      } catch (error) {
+        content.textContent = "The analysis data could not be loaded. Please rebuild this report and reopen it.";
+        return;
+      }
+      const nav = document.getElementById("navigation");
+      const sidebar = document.getElementById("sidebar");
+      const menu = document.getElementById("menu-toggle");
+      const mobile = window.matchMedia("(max-width: 850px)");
+      const expanded = new Set();
+      let activePlot = null;
+      let renderVersion = 0;
+      let firstRender = true;
+      let focusDeveloperTab = false;
+      const paths = {
+        overview:"M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z",
+        city:"M4 20V8h6v12M10 20V3h6v17M16 20v-9h4v9M2 21h20",
+        patterns:"M3 6h18M3 12h18M3 18h18M7 3v6M15 9v6M10 15v6",
+        intersections:"M3 8h5V3m8 0v5h5M3 16h5v5m8 0v-5h5M8 8l8 8m0-8-8 8",
+        quality:"M12 3l8 3v6c0 4-4 7-8 9-4-2-8-5-8-9V6zM8 12l3 3 5-6",
+        arrow:"M5 12h14m-5-5 5 5-5 5",
+        back:"M19 12H5m5-5-5 5 5 5",
+        chevron:"m9 6 6 6-6 6",
+        calendar:"M5 5h14v16H5zM8 3v4m8-4v4M5 10h14",
+        info:"M12 11v6m0-10v1M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0",
+        reset:"M3 10a9 9 0 1 1 2 8M3 4v6h6",
+        download:"M12 3v12m-5-5 5 5 5-5M4 16v5h16v-5"
+      };
+      const el = (tag, className, text) => {
+        const node = document.createElement(tag);
+        if (className) node.className = className;
+        if (text !== undefined && text !== null) node.textContent = String(text);
+        return node;
+      };
+      const icon = (name, className = "") => {
+        const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+        svg.setAttribute("viewBox", "0 0 24 24");
+        svg.setAttribute("fill", "none");
+        svg.setAttribute("stroke", "currentColor");
+        svg.setAttribute("stroke-width", "1.6");
+        svg.setAttribute("stroke-linecap", "round");
+        svg.setAttribute("stroke-linejoin", "round");
+        svg.setAttribute("aria-hidden", "true");
+        if (className) svg.setAttribute("class", className);
+        const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        path.setAttribute("d", paths[name] || paths.overview);
+        svg.append(path);
+        return svg;
+      };
+      const route = (section, chart) => "#/" + [section, chart].filter(Boolean).map(encodeURIComponent).join("/");
+      const link = (text, href, className) => {
+        const node = el("a", className, text);
+        node.href = href;
+        return node;
+      };
+      const chartHref = chart => route(chart.section, chart.id);
+      const sectionById = id => app.sections.find(section => section.id === id);
+      const availableCharts = section => section.chartIds.map(id => app.charts[id]).filter(Boolean);
+      const button = (text, iconName, handler) => {
+        const node = el("button", "quiet-button");
+        node.type = "button";
+        if (iconName) node.append(icon(iconName));
+        node.append(document.createTextNode(text));
+        node.addEventListener("click", handler);
+        return node;
+      };
+      function setMenu(open) {
+        const visible = mobile.matches && open;
+        document.body.classList.toggle("nav-open", visible);
+        menu.setAttribute("aria-expanded", String(visible));
+        menu.setAttribute("aria-label", visible ? "Close navigation" : "Open navigation");
+        sidebar.inert = mobile.matches && !visible;
+        if (mobile.matches) sidebar.setAttribute("aria-hidden", String(!visible));
+        else sidebar.removeAttribute("aria-hidden");
+      }
+      menu.addEventListener("click", () => {
+        const open = menu.getAttribute("aria-expanded") !== "true";
+        setMenu(open);
+        if (open) nav.querySelector("a,button")?.focus();
+      });
+      document.getElementById("scrim").addEventListener("click", () => { setMenu(false); menu.focus(); });
+      document.querySelector(".skip").addEventListener("click", event => {
+        event.preventDefault();
+        document.getElementById("main-content").focus();
+        window.scrollTo({top:0, behavior:"instant"});
+      });
+      sidebar.addEventListener("click", event => {
+        const anchor = event.target.closest("a");
+        if (anchor && anchor.hash === location.hash) {
+          setMenu(false);
+          content.querySelector("h1")?.focus({preventScroll:true});
+        }
+      });
+      mobile.addEventListener("change", () => setMenu(false));
+      document.addEventListener("keydown", event => {
+        if (menu.getAttribute("aria-expanded") !== "true") return;
+        if (event.key === "Escape") { setMenu(false); menu.focus(); }
+        if (event.key === "Tab") {
+          const focusable = [menu, ...sidebar.querySelectorAll("a,button")].filter(node => node.getClientRects().length);
+          const index = focusable.indexOf(document.activeElement);
+          if (event.shiftKey && index <= 0) { event.preventDefault(); focusable.at(-1).focus(); }
+          else if (!event.shiftKey && index === focusable.length - 1) { event.preventDefault(); menu.focus(); }
+        }
+      });
+      function buildNav(sectionId, chartId) {
+        nav.replaceChildren();
+        const home = link("", route(), "nav-home");
+        home.append(icon("overview", "nav-icon"), document.createTextNode("Overview"));
+        if (!sectionId) home.setAttribute("aria-current", "page");
+        nav.append(home);
+        for (const section of app.sections) {
+          const group = el("div", "nav-section");
+          const toggle = el("button", "nav-section-toggle" + (section.id === sectionId ? " active" : ""));
+          toggle.type = "button";
+          toggle.append(icon(section.id, "nav-icon"), document.createTextNode(section.label), icon("chevron", "nav-chevron"));
+          const children = el("div", "nav-children");
+          children.id = "nav-" + section.id;
+          const open = expanded.has(section.id);
+          toggle.setAttribute("aria-expanded", String(open));
+          toggle.setAttribute("aria-controls", children.id);
+          children.hidden = !open;
+          toggle.addEventListener("click", () => {
+            const next = toggle.getAttribute("aria-expanded") !== "true";
+            if (next) expanded.add(section.id); else expanded.delete(section.id);
+            toggle.setAttribute("aria-expanded", String(next));
+            children.hidden = !next;
+          });
+          const intro = link("Section overview", route(section.id), "nav-child");
+          if (section.id === sectionId && !chartId) intro.setAttribute("aria-current", "page");
+          children.append(intro);
+          for (const chart of availableCharts(section)) {
+            const child = link(chart.title, chartHref(chart), "nav-child");
+            if (chart.id === chartId) child.setAttribute("aria-current", "page");
+            children.append(child);
+          }
+          group.append(toggle, children);
+          nav.append(group);
+        }
+      }
+      function breadcrumbs(section, chart) {
+        const crumbs = el("nav", "breadcrumbs");
+        crumbs.setAttribute("aria-label", "Breadcrumb");
+        crumbs.append(section ? link("Overview", route()) : el("span", "", "Overview"));
+        if (section) {
+          crumbs.append(el("span", "separator", "/"));
+          crumbs.append(chart ? link(section.label, route(section.id)) : el("span", "", section.label));
+        }
+        if (chart) crumbs.append(el("span", "separator", "/"), el("span", "", chart.title));
+        crumbs.lastElementChild.setAttribute("aria-current", "page");
+        return crumbs;
+      }
+      function intro(title, description, eyebrow) {
+        const block = el("header", "intro");
+        if (eyebrow) block.append(el("div", "eyebrow", eyebrow));
+        const heading = el("h1", "", title);
+        heading.tabIndex = -1;
+        block.append(heading);
+        if (description) block.append(el("p", "", description));
+        return block;
+      }
+      function footer() {
+        const result = el("footer", "page-footer");
+        result.append(el("span", "", "Isfahan traffic analysis · " + app.period));
+        result.append(link("Data notes & coverage", route("quality")));
+        return result;
+      }
+      function homePage() {
+        content.append(breadcrumbs());
+        const heading = intro(app.title || "A closer look at Isfahan traffic", app.description, "Traffic, over time");
+        const period = el("div", "period-tag");
+        period.append(icon("calendar"), document.createTextNode(app.period + " · Archived traffic records"));
+        heading.append(period);
+        content.append(heading);
+        const metrics = el("div", "metrics");
+        for (const metric of app.metrics.slice(0, 3)) {
+          const chart = app.charts[metric.chartId];
+          const card = chart ? link("", chartHref(chart), "metric") : el("div", "metric");
+          card.append(el("span", "metric-value", metric.value), el("span", "metric-label", metric.label), el("span", "metric-detail", metric.detail));
+          if (chart) card.append(icon("arrow", "metric-arrow"));
+          metrics.append(card);
+        }
+        content.append(metrics);
+        const note = el("div", "data-note");
+        const noteText = el("span", "", "These are recorded junction counts. Missing months and detector gaps affect the comparisons. ");
+        noteText.append(link("See the data notes", route("quality")));
+        note.append(icon("info"), noteText);
+        content.append(note);
+        const headingRow = el("div", "section-heading");
+        headingRow.append(el("h2", "", "What would you like to explore?"), el("p", "", "Choose a section, then open a chart."));
+        content.append(headingRow);
+        const grid = el("div", "section-grid");
+        app.sections.forEach((section, index) => {
+          const card = link("", route(section.id), "section-card");
+          const top = el("div", "card-top");
+          const mark = el("span", "section-icon");
+          mark.append(icon(section.id));
+          top.append(mark, el("span", "section-number", String(index + 1).padStart(2, "0")));
+          const bottom = el("div", "card-bottom");
+          const count = availableCharts(section).length;
+          bottom.append(el("span", "", "Explore " + count + (count === 1 ? " chart" : " charts")), icon("arrow"));
+          card.append(top, el("h3", "", section.title), el("p", "", section.description), bottom);
+          grid.append(card);
+        });
+        content.append(grid);
+      }
+      function chartCards(section) {
+        const grid = el("div", "chart-grid");
+        availableCharts(section).forEach((chart, index) => {
+          const card = link("", chartHref(chart), "chart-card");
+          const bottom = el("div", "card-bottom");
+          bottom.append(el("span", "", "Open chart"), icon("arrow"));
+          card.append(el("span", "chart-index", "Chart " + String(index + 1).padStart(2, "0")), el("h2", "", chart.title), el("p", "", chart.summary), bottom);
+          grid.append(card);
+        });
+        return grid;
+      }
+      function siteLookup() {
+        const panel = el("section", "lookup");
+        const top = el("div", "lookup-top");
+        const title = el("div");
+        title.append(el("h2", "", "Find a junction"), el("p", "", "Look up a name or site number. The change compares February with March 2020. Available months count the months that pass the coverage checks for this site."));
+        const field = el("div", "lookup-search");
+        const label = el("label", "search-label", "Search junctions");
+        label.htmlFor = "junction-search";
+        const input = el("input", "search-input");
+        input.id = "junction-search";
+        input.type = "search";
+        input.placeholder = "Name or site number";
+        input.autocomplete = "off";
+        field.append(label, input);
+        top.append(title, field);
+        panel.append(top);
+        const wrap = el("div", "table-wrap");
+        const table = el("table");
+        table.setAttribute("aria-label", "Junctions in the traffic archive");
+        const head = el("thead");
+        const row = el("tr");
+        for (const text of ["Site", "Junction", "Feb to Mar 2020", "Available months"]) {
+          const th = el("th", "", text);
+          th.scope = "col";
+          row.append(th);
+        }
+        head.append(row);
+        const body = el("tbody");
+        table.append(head, body);
+        wrap.append(table);
+        const empty = el("div", "lookup-empty", "No junctions match this search. Try a shorter name or a site number.");
+        empty.hidden = true;
+        const status = el("div", "lookup-summary");
+        status.setAttribute("aria-live", "polite");
+        panel.append(wrap, empty, status);
+        const normalize = value => String(value ?? "").normalize("NFKC").toLocaleLowerCase().replace(/ي/g, "ی").replace(/ك/g, "ک").replace(/[۰-۹]/g, digit => String("۰۱۲۳۴۵۶۷۸۹".indexOf(digit))).trim();
+        const sites = app.sites || [];
+        const draw = () => {
+          const query = normalize(input.value);
+          const found = sites.filter(site => normalize(site.id + " " + site.name).includes(query));
+          body.replaceChildren();
+          for (const site of found) {
+            const tr = el("tr");
+            const name = el("td", "junction-name", site.name || "Unnamed junction");
+            name.dir = "auto";
+            const change = typeof site.change === "number" && Number.isFinite(site.change) ? (site.change > 0 ? "+" : "") + (site.change * 100).toFixed(1) + "%" : "Not available";
+            tr.append(el("td", "junction-id", site.id), name, el("td", "change", change), el("td", "", site.months ?? "—"));
+            body.append(tr);
+          }
+          wrap.hidden = found.length === 0;
+          empty.hidden = found.length !== 0;
+          status.textContent = found.length + " of " + sites.length + " junctions";
+        };
+        input.addEventListener("input", draw);
+        draw();
+        return panel;
+      }
+      function qualityNotes() {
+        const block = el("section");
+        const heading = el("div", "section-heading");
+        heading.append(el("h2", "", "A few things to keep in mind"));
+        block.append(heading);
+        const grid = el("div", "notes-grid");
+        for (const note of app.notes || []) {
+          const item = el("article", "note");
+          item.append(el("h3", "", note.title), el("p", "", note.body));
+          grid.append(item);
+        }
+        block.append(grid);
+        return block;
+      }
+      function sectionPage(section) {
+        content.append(breadcrumbs(section), intro(section.title, section.description, "Explore · " + section.label), chartCards(section));
+        if (section.id === "intersections") {
+          content.append(siteLookup());
+          if (app.mapHref && !/^\s*(javascript|data|vbscript):/i.test(app.mapHref)) {
+            const maps = el("div", "related");
+            const map = link("Open the junction map", app.mapHref);
+            map.target = "_blank";
+            map.rel = "noopener";
+            map.append(icon("arrow"));
+            maps.append(map, el("span", "", "Map backgrounds need an internet connection."));
+            content.append(maps);
+          }
+        }
+        if (section.id === "quality") content.append(qualityNotes());
+      }
+      function developerPage(view) {
+        const developer = app.developer || {};
+        const tabs = [{id:"pipeline", label:"Pipeline"}, {id:"datasets", label:"Datasets"}, {id:"validation", label:"Validation"}];
+        const selected = tabs.find(tab => tab.id === view) || tabs[0];
+        const crumbs = el("nav", "breadcrumbs");
+        crumbs.setAttribute("aria-label", "Breadcrumb");
+        crumbs.append(link("Overview", route()), el("span", "separator", "/"), link("Developer workspace", route("developer", "pipeline")), el("span", "separator", "/"), el("span", "", selected.label));
+        crumbs.lastElementChild.setAttribute("aria-current", "page");
+        content.append(crumbs, intro("Developer workspace", "Follow the build, inspect the records behind the charts, and check the saved validation results.", "Under the hood"));
+        const tabList = el("div", "developer-tabs");
+        tabList.setAttribute("role", "tablist");
+        tabList.setAttribute("aria-label", "Developer workspace views");
+        for (const tab of tabs) {
+          const tabLink = link(tab.label, route("developer", tab.id), "developer-tab");
+          tabLink.id = "developer-tab-" + tab.id;
+          tabLink.setAttribute("role", "tab");
+          tabLink.setAttribute("aria-selected", String(tab.id === selected.id));
+          tabLink.setAttribute("aria-controls", "developer-panel");
+          tabLink.tabIndex = tab.id === selected.id ? 0 : -1;
+          tabLink.addEventListener("click", () => { focusDeveloperTab = tab.id !== selected.id; });
+          tabLink.addEventListener("keydown", event => {
+            const index = tabs.findIndex(item => item.id === tab.id);
+            let next;
+            if (event.key === "ArrowRight") next = tabs[(index + 1) % tabs.length];
+            if (event.key === "ArrowLeft") next = tabs[(index + tabs.length - 1) % tabs.length];
+            if (event.key === "Home") next = tabs[0];
+            if (event.key === "End") next = tabs[tabs.length - 1];
+            if (next) {
+              event.preventDefault();
+              if (next.id !== selected.id) { focusDeveloperTab = true; location.hash = route("developer", next.id); }
+            }
+          });
+          tabList.append(tabLink);
+        }
+        const panel = el("section", "developer-panel");
+        panel.id = "developer-panel";
+        panel.setAttribute("role", "tabpanel");
+        panel.setAttribute("aria-labelledby", "developer-tab-" + selected.id);
+        panel.tabIndex = 0;
+        content.append(tabList, panel);
+        if (selected.id === "pipeline") pipelineView(panel, developer);
+        if (selected.id === "datasets") datasetsView(panel, developer.datasets || []);
+        if (selected.id === "validation") validationView(panel, developer.validation || {});
+        return selected;
+      }
+      function pipelineView(panel, developer) {
+        panel.append(el("p", "developer-intro", "Each stage reads the previous stage’s files. The analysis pages are built from these outputs."));
+        const list = el("div", "pipeline-list");
+        (developer.pipeline || []).forEach((step, index) => {
+          const item = el("article", "pipeline-step");
+          const detail = el("div");
+          detail.append(el("code", "pipeline-id", step.id), el("h2", "", step.label), el("p", "", step.detail));
+          const io = el("div", "io-grid");
+          for (const [label, files] of [["Reads", step.inputs], ["Writes", step.outputs]]) {
+            const group = el("div");
+            group.append(el("span", "io-label", label));
+            for (const file of files || []) group.append(el("code", "", file));
+            if (!files?.length) group.append(el("code", "", "—"));
+            io.append(group);
+          }
+          detail.append(io);
+          item.append(el("span", "pipeline-number", String(index + 1).padStart(2, "0")), detail);
+          list.append(item);
+        });
+        panel.append(list);
+        if (developer.rules?.length) {
+          const heading = el("div", "section-heading");
+          heading.append(el("h2", "", "Calculation rules"));
+          panel.append(heading);
+          const box = el("div", "developer-box");
+          box.append(el("p", "", "These values describe how the stored analysis was prepared."));
+          const wrap = el("div", "table-wrap rules-table");
+          const table = el("table", "developer-table");
+          const head = el("thead");
+          const header = el("tr");
+          for (const title of ["Rule", "Value", "How it is used"]) {
+            const cell = el("th", "", title); cell.scope = "col"; header.append(cell);
+          }
+          head.append(header);
+          const body = el("tbody");
+          for (const rule of developer.rules) {
+            const row = el("tr");
+            const name = el("td", "field-name"); name.append(el("code", "", rule.name));
+            const value = el("td"); value.append(el("code", "", typeof rule.value === "object" ? JSON.stringify(rule.value) : rule.value));
+            row.append(name, value, el("td", "field-value", rule.detail));
+            body.append(row);
+          }
+          table.append(head, body);
+          wrap.append(table);
+          box.append(wrap);
+          panel.append(box);
+        }
+      }
+      function datasetsView(panel, datasets) {
+        panel.append(el("p", "developer-intro", "Inspect the fields and a small sample from each dataset. Sample types describe the displayed records; they are not a full schema check."));
+        if (!datasets.length) { panel.append(el("p", "", "No dataset previews are included in this build.")); return; }
+        const box = el("div", "developer-box");
+        const controls = el("div", "dataset-control");
+        const field = el("div");
+        const label = el("label", "", "Dataset"); label.htmlFor = "developer-dataset";
+        const select = el("select"); select.id = "developer-dataset";
+        datasets.forEach(dataset => {
+          const option = el("option", "", dataset.id);
+          option.value = dataset.id;
+          select.append(option);
+        });
+        field.append(label, select);
+        const count = el("div", "dataset-count"); count.setAttribute("aria-live", "polite");
+        controls.append(field, count);
+        const details = el("div");
+        box.append(controls, details);
+        panel.append(box);
+        const draw = () => {
+          const dataset = datasets.find(item => item.id === select.value) || datasets[0];
+          const preview = (dataset.preview || []).slice(0, 3);
+          const fields = dataset.fields || [];
+          count.textContent = Number(dataset.count).toLocaleString() + (Number(dataset.count) === 1 ? " row · " : " rows · ") + fields.length + (fields.length === 1 ? " field" : " fields");
+          details.replaceChildren();
+          const wrap = el("div", "table-wrap");
+          const table = el("table", "developer-table");
+          table.setAttribute("aria-label", "Fields in " + dataset.id);
+          const head = el("thead");
+          const header = el("tr");
+          for (const title of ["Field", "Sample type", "Example value"]) {
+            const cell = el("th", "", title); cell.scope = "col"; header.append(cell);
+          }
+          head.append(header);
+          const body = el("tbody");
+          for (const fieldName of fields) {
+            const samples = preview.map(row => row[fieldName]);
+            const sample = samples.find(value => value !== null && value !== undefined);
+            const types = [...new Set(samples.map(value => value === null || value === undefined ? "null" : Array.isArray(value) ? "array" : typeof value))];
+            const row = el("tr");
+            const name = el("td", "field-name"); name.append(el("code", "", fieldName));
+            const type = el("td"); type.append(el("code", "", types.join(" | ") || "no sample"));
+            const value = el("td", "field-value");
+            const text = sample === undefined ? "null" : typeof sample === "object" ? JSON.stringify(sample) : String(sample);
+            value.append(el("code", "", text.length > 180 ? text.slice(0, 180) + "…" : text));
+            row.append(name, type, value);
+            body.append(row);
+          }
+          table.append(head, body);
+          wrap.append(table);
+          details.append(wrap);
+          const records = el("div", "sample-records");
+          records.append(el("h3", "", "Sample records"));
+          preview.forEach((record, index) => {
+            const item = el("details", "sample-record");
+            item.append(el("summary", "", "Record " + (index + 1) + " · JSON"), el("pre", "", JSON.stringify(record, null, 2)));
+            records.append(item);
+          });
+          if (!preview.length) records.append(el("p", "", "This dataset has no preview records."));
+          details.append(records);
+        };
+        select.addEventListener("change", draw);
+        draw();
+      }
+      function validationView(panel, validation) {
+        panel.append(el("p", "developer-intro", "These are the results saved with this build. Opening this page does not run the pipeline again."));
+        const summary = el("div", "validation-summary");
+        const known = typeof validation.passed === "boolean";
+        const badge = el("span", "status-badge" + (known && !validation.passed ? " failed" : ""), known ? (validation.passed ? "Passed" : "Needs review") : "No saved status");
+        const text = el("div");
+        text.append(el("h2", "", validation.confidence || "Saved validation results"));
+        if (validation.generated_at_utc) text.append(el("p", "", "Recorded at " + validation.generated_at_utc));
+        summary.append(badge, text);
+        panel.append(summary);
+        const box = el("div", "developer-box");
+        box.append(el("h2", "", "Recorded checks and counts"));
+        const wrap = el("div", "table-wrap");
+        const table = el("table", "developer-table");
+        const head = el("thead");
+        const header = el("tr");
+        for (const title of ["Stored field", "Result"]) { const cell = el("th", "", title); cell.scope = "col"; header.append(cell); }
+        head.append(header);
+        const body = el("tbody");
+        for (const [key, value] of Object.entries(validation)) {
+          if (["passed", "confidence", "generated_at_utc", "caveats"].includes(key)) continue;
+          const row = el("tr");
+          const field = el("td", "field-name"); field.append(el("code", "", key));
+          const result = el("td", "field-value"); result.append(el("code", "", typeof value === "object" ? JSON.stringify(value) : String(value)));
+          row.append(field, result);
+          body.append(row);
+        }
+        table.append(head, body);
+        wrap.append(table);
+        box.append(wrap);
+        if (Array.isArray(validation.caveats) && validation.caveats.length) {
+          const heading = el("div", "section-heading"); heading.append(el("h2", "", "Recorded caveats"));
+          box.append(heading);
+          const list = el("ul", "validation-caveats");
+          for (const caveat of validation.caveats) list.append(el("li", "", caveat));
+          box.append(list);
+        }
+        const raw = el("details", "source-details");
+        raw.append(el("summary", "", "View the saved validation JSON"), el("pre", "", JSON.stringify(validation, null, 2)));
+        box.append(raw);
+        panel.append(box);
+      }
+      async function chartPage(section, chart, version) {
+        content.append(breadcrumbs(section, chart), intro(chart.title, chart.summary, section.label));
+        const insight = el("aside", "takeaway");
+        const insightText = el("div");
+        const takeaway = el("p", "", chart.takeaway);
+        insightText.append(el("div", "takeaway-label", "What stands out"), takeaway);
+        insight.append(icon("info"), insightText);
+        content.append(insight);
+        const panel = el("section", "chart-panel");
+        panel.setAttribute("aria-label", chart.title + " chart");
+        const toolbar = el("div", "chart-toolbar");
+        const hint = el("span", "chart-toolbar-hint", "Hover for values · drag to zoom");
+        const actions = el("div", "chart-actions");
+        const frame = el("div", "chart-frame");
+        frame.setAttribute("role", "img");
+        frame.setAttribute("aria-label", chart.title + ". " + chart.takeaway + " " + chart.read);
+        const status = el("div", "chart-status", "Loading chart…");
+        status.setAttribute("role", "status");
+        const clone = value => JSON.parse(JSON.stringify(value));
+        let figure = chart.figure;
+        const variants = chart.variants || [];
+        if (variants.length) figure = (variants.find(item => item.value === chart.defaultVariant) || variants[0]).figure;
+        let plotting = false;
+        const reset = button("Reset view", "reset", async () => { if (!plotting) await draw(figure); });
+        const download = button("Save chart", "download", async () => {
+          if (plotting || !window.Plotly || version !== renderVersion || activePlot !== frame || !frame.isConnected) return;
+          download.disabled = true;
+          try {
+            await Plotly.downloadImage(frame, {format:"png", filename:"isfahan-" + chart.id, width:1400, height:800, scale:1.5});
+            status.textContent = "Chart image saved.";
+          } catch (error) { status.textContent = "The image could not be saved. Please try again."; }
+          finally { download.disabled = false; }
+        });
+        actions.append(reset, download);
+        toolbar.append(hint, actions);
+        panel.append(toolbar, frame, status);
+        content.append(panel);
+        if (variants.length) {
+          const control = el("div", "variant-control");
+          const label = el("label", "", "View");
+          label.htmlFor = "chart-variant";
+          const select = el("select");
+          select.id = "chart-variant";
+          for (const variant of variants) {
+            const option = el("option", "", variant.label);
+            option.value = variant.value;
+            option.selected = variant.value === chart.defaultVariant;
+            select.append(option);
+          }
+          select.addEventListener("change", async () => {
+            const variant = variants.find(item => item.value === select.value);
+            figure = variant.figure;
+            takeaway.textContent = variant.takeaway || chart.takeaway;
+            select.disabled = true;
+            await draw(figure);
+            select.disabled = false;
+          });
+          control.append(label, select);
+          hint.replaceWith(control);
+        }
+        const guides = el("div", "chart-guides");
+        for (const [title, text] of [["How to read it", chart.read], ["Keep in mind", chart.limit]]) {
+          const guide = el("section", "guide");
+          guide.append(el("h2", "", title), el("p", "", text));
+          guides.append(guide);
+        }
+        content.append(guides);
+        const details = el("details", "source-details");
+        details.append(el("summary", "", "Source & calculation"), el("p", "", chart.source));
+        content.append(details);
+        const related = el("nav", "related");
+        related.setAttribute("aria-label", "More in this section");
+        const back = link("", route(section.id));
+        back.append(icon("back"), document.createTextNode("Back to " + section.label.toLowerCase()));
+        related.append(back);
+        const charts = availableCharts(section);
+        const next = charts[charts.findIndex(item => item.id === chart.id) + 1];
+        if (next) {
+          const nextLink = link("Next: " + next.title, chartHref(next));
+          nextLink.append(icon("arrow"));
+          related.append(nextLink);
+        }
+        content.append(related);
+        async function draw(currentFigure) {
+          if (version !== renderVersion) return;
+          plotting = true;
+          reset.disabled = download.disabled = true;
+          try {
+            if (!window.Plotly) throw new Error("Plotly is unavailable");
+            const data = clone(currentFigure.data || []);
+            const layout = clone(currentFigure.layout || {});
+            delete layout.width;
+            delete layout.height;
+            delete layout.title;
+            layout.autosize = true;
+            layout.paper_bgcolor = "#fffefa";
+            layout.plot_bgcolor = "#fffefa";
+            layout.font = {...(layout.font || {}), family:'"Segoe UI", Arial, sans-serif', color:"#344347", size:12};
+            layout.margin = {l:70, r:35, t:35, b:65, ...(layout.margin || {})};
+            if (window.innerWidth < 580) {
+              layout.margin.l = Math.min(layout.margin.l, 60);
+              layout.margin.r = Math.min(layout.margin.r, 22);
+              layout.font.size = 10;
+              for (const [key, axis] of Object.entries(layout)) {
+                if (/^[xy]axis\d*$/.test(key) && axis && typeof axis === "object") {
+                  axis.automargin = true;
+                  axis.tickfont = {...(axis.tickfont || {}), size:10};
+                  if (axis.title && typeof axis.title === "object") axis.title.standoff = 5;
+                }
+              }
+            }
+            activePlot = frame;
+            await Plotly.react(frame, data, layout, {responsive:true, displayModeBar:false, displaylogo:false, scrollZoom:false});
+            if (version !== renderVersion) { Plotly.purge(frame); return; }
+            status.textContent = "";
+          } catch (error) {
+            if (version === renderVersion) status.textContent = "This chart could not be opened. Try reopening the report.";
+          } finally {
+            plotting = false;
+            reset.disabled = download.disabled = false;
+          }
+        }
+        await draw(figure);
+      }
+      function render() {
+        const version = ++renderVersion;
+        if (activePlot && window.Plotly) Plotly.purge(activePlot);
+        activePlot = null;
+        content.replaceChildren();
+        let parts;
+        try { parts = location.hash.replace(/^#\/?/, "").split("/").filter(Boolean).map(decodeURIComponent); }
+        catch (error) { parts = []; }
+        const section = sectionById(parts[0]);
+        const isDeveloper = parts[0] === "developer";
+        const candidate = app.charts[parts[1]];
+        const chart = section && candidate && candidate.section === section.id && section.chartIds.includes(candidate.id) ? candidate : null;
+        if (section) expanded.add(section.id);
+        buildNav(isDeveloper ? "developer" : section?.id, chart?.id);
+        const developerLink = document.getElementById("developer-link");
+        if (isDeveloper) developerLink.setAttribute("aria-current", "page");
+        else developerLink.removeAttribute("aria-current");
+        setMenu(false);
+        let developerTab;
+        if (isDeveloper) developerTab = developerPage(parts[1]);
+        else if (!section) homePage();
+        else if (!chart) sectionPage(section);
+        else chartPage(section, chart, version);
+        content.append(footer());
+        document.title = (isDeveloper ? developerTab.label + " · Developer workspace" : chart?.title || section?.title || "Overview") + " · Isfahan traffic";
+        if (!firstRender) {
+          if (focusDeveloperTab && isDeveloper) content.querySelector('.developer-tab[aria-selected="true"]')?.focus({preventScroll:true});
+          else content.querySelector("h1")?.focus({preventScroll:true});
+          window.scrollTo({top:0, behavior:"instant"});
+        }
+        focusDeveloperTab = false;
+        firstRender = false;
+      }
+      document.getElementById("archive-period").textContent = "Archive · " + app.period;
+      window.addEventListener("hashchange", render);
+      render();
+    })();
+  </script>
+</body>
+</html>

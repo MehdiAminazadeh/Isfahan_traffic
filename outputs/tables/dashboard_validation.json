@@ -1,0 +1,45 @@
+{
+  "generated_at_utc": "2026-07-20T13:19:04.950184+00:00",
+  "monthly_rows": 1931,
+  "trusted_monthly_rows": 1433,
+  "monthly_duplicate_keys": 0,
+  "daily_calendar_rows": 854,
+  "daily_duplicate_dates": 0,
+  "graph_nodes": 74,
+  "graph_duplicate_nodes": 0,
+  "graph_edges": 218,
+  "shock_paired_sites": 41,
+  "recovery_paired_sites": 43,
+  "latest_yoy_paired_sites": 29,
+  "possible_regime_shift_sites": 3,
+  "reliable_mapped_graph_nodes": 31,
+  "month_heatmap_intersections": [
+    1043,
+    1075,
+    1094,
+    1116,
+    1036,
+    1071,
+    1035,
+    1032,
+    1069,
+    1057,
+    1113,
+    1093
+  ],
+  "missing_source_months": [
+    "2020-11"
+  ],
+  "partial_source_months": [
+    "2020-12"
+  ],
+  "passed": true,
+  "confidence": "Share with caveats",
+  "caveats": [
+    "November 2020 is missing and December 2020 is partial.",
+    "The set of trusted intersections changes by month, so paired-site changes are used for headline comparisons.",
+    "Functional graph edges show similar weekly patterns, not roads or vehicle movements.",
+    "Map coordinates are OpenStreetMap candidates and need municipal GIS review.",
+    "Calendar, weather, and COVID results are associations, not proof of cause."
+  ]
+}

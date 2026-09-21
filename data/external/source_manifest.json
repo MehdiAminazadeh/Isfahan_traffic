@@ -1,0 +1,49 @@
+{
+  "retrieved_at_utc": "2026-07-20T12:47:26.880701+00:00",
+  "calendar": {
+    "provider": "Vacanza holidays 0.57 / Iran calendar",
+    "documentation": "https://holidays.readthedocs.io/en/latest/auto_gen_docs/iran/",
+    "verification_sites": [
+      "https://www.time.ir/",
+      "https://calendar.ut.ac.ir/"
+    ],
+    "scope": "Iran national public holidays; Persian and English labels"
+  },
+  "weather": {
+    "url": "https://archive-api.open-meteo.com/v1/archive",
+    "model": "era5",
+    "requested_coordinates": [
+      32.6546,
+      51.668
+    ],
+    "returned_grid_coordinates": [
+      32.75,
+      51.75
+    ],
+    "returned_elevation_m": 1579.0,
+    "timezone": "Asia/Tehran",
+    "hourly_units": {
+      "time": "iso8601",
+      "temperature_2m": "°C",
+      "relative_humidity_2m": "%",
+      "precipitation": "mm",
+      "rain": "mm",
+      "snowfall": "cm",
+      "weather_code": "wmo code",
+      "cloud_cover": "%",
+      "wind_speed_10m": "km/h",
+      "wind_gusts_10m": "km/h"
+    },
+    "raw_sha256": "bf693c491b5541175cc58f95566701c9765627d51ab0a4f70d2de4ff47c0ca36"
+  },
+  "covid_policy": {
+    "url": "https://raw.githubusercontent.com/OxCGRT/covid-policy-dataset/main/data/OxCGRT_compact_national_v1.csv",
+    "country_code": "IRN",
+    "jurisdiction": "NAT_TOTAL",
+    "scope_warning": "National policy values; they are not Isfahan-specific compliance or mobility measurements.",
+    "raw_sha256": "fa5c95fa8f5e386517698cdc17581f7e3333348907c57ad8459c877580d0fe79",
+    "source_first_date": "2020-01-01",
+    "source_last_date": "2022-12-31"
+  },
+  "manual_events_file": "data\\external\\manual\\isfahan_events.csv"
+}

@@ -1,0 +1,122 @@
+{
+  "data_window": {
+    "first_month": "2018-10",
+    "last_month": "2021-01",
+    "raw_intersection_records": 5454089,
+    "intersections_with_raw_data": 75,
+    "trusted_intersection_months": 1433,
+    "partial_source_months": [
+      "2020-12"
+    ],
+    "missing_source_months": [
+      "2020-11"
+    ]
+  },
+  "quality": {
+    "channel_readings_profiled": 57594780,
+    "invalid_channel_readings": 11652025,
+    "invalid_channel_rate": 0.20231043507762336,
+    "operational_detector_invalid_rate": 0.19147808830169913
+  },
+  "time_series": {
+    "largest_consecutive_month_decline": {
+      "year_month": "2020-03",
+      "previous_month": "2020-02",
+      "paired_intersections": 41,
+      "median_change": -0.2584248109144456,
+      "mean_change": -0.2576394776400213,
+      "p25_change": -0.3032115591104402,
+      "p75_change": -0.2316759696448225
+    },
+    "largest_consecutive_month_increase": {
+      "year_month": "2020-05",
+      "previous_month": "2020-04",
+      "paired_intersections": 43,
+      "median_change": 0.24351213416797513,
+      "mean_change": 0.2703399860015359,
+      "p25_change": 0.21573135475867056,
+      "p75_change": 0.2784376952025408
+    },
+    "highest_typical_month": {
+      "month": 1.0,
+      "mean_volume": 554.9010512187833,
+      "median_volume": 546.4834939675716,
+      "standard_deviation": 157.39238475842345,
+      "intersection_months": 34.0
+    },
+    "lowest_typical_month": {
+      "month": 11.0,
+      "mean_volume": 518.4202846960231,
+      "median_volume": 500.18632423056135,
+      "standard_deviation": 128.48497005444793,
+      "intersection_months": 34.0
+    },
+    "month_of_year_baseline": "2019 (only complete pre-pandemic calendar year)",
+    "month_of_year_common_panel_intersections": 34,
+    "seasonal_peak_to_trough": 0.09255984718940358
+  },
+  "intersection_1081": {
+    "volume_rank": 61,
+    "ranked_intersections": 74,
+    "functional_similarity_centrality_rank": 5,
+    "mean_approach_volumes": {
+      "south": 149.97816487114395,
+      "west": 60.43274437831685,
+      "north": 152.32127107873717,
+      "east": 75.97521949163331
+    },
+    "dominant_entry_approach": "north",
+    "dominant_approach_share": 0.34720469985528535,
+    "north_south_corridor_share": 0.6890684681271155,
+    "feb_to_mar_2020_change": -0.3419126920252732,
+    "apr_to_may_2020_change": 0.27389926525642116
+  },
+  "functional_graph": {
+    "nodes": 74,
+    "edges": 218,
+    "communities": 4,
+    "connected_components": 1,
+    "interpretation": "Edges represent similar 168-bin weekly traffic profiles, not physical roads.",
+    "highest_weighted_degree_node": {
+      "intersection_id": 1051,
+      "community": 2,
+      "degree_centrality": 0.1506849315068493,
+      "weighted_degree": 10.924335656406992,
+      "betweenness_centrality": 0.22907153729071536,
+      "eigenvector_centrality": 0.17065152935078973,
+      "dtw_cluster": 2,
+      "mean_volume": 366.8021608794638,
+      "trusted_months": 23,
+      "name_fa": "چهار راه نقاشي",
+      "gis_id": 1055.0
+    }
+  },
+  "dtw_clustering": {
+    "selected_clusters": 2,
+    "silhouette": 0.56920627850436,
+    "candidates": [
+      {
+        "clusters": 2,
+        "silhouette": 0.56920627850436
+      },
+      {
+        "clusters": 3,
+        "silhouette": 0.5322253326073867
+      },
+      {
+        "clusters": 4,
+        "silhouette": 0.4510783254215809
+      },
+      {
+        "clusters": 5,
+        "silhouette": 0.38126946202514983
+      },
+      {
+        "clusters": 6,
+        "silhouette": 0.33329596833760616
+      }
+    ],
+    "intersections_clustered": 74
+  },
+  "method_note": "Volume is coverage-normalized across operational detector channels; functional graph edges encode weekly-profile similarity, not physical adjacency or vehicle transfers."
+}

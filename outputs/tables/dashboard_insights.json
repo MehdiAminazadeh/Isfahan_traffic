@@ -1,0 +1,32 @@
+{
+  "shock_sites_declining": 41,
+  "shock_sites_total": 41,
+  "recovery_sites_rising": 43,
+  "recovery_sites_total": 43,
+  "shock_recovery_correlation": -0.0655798028342399,
+  "volume_centrality_spearman": -0.038400592373195104,
+  "weekly_peak_weekday": "Thu",
+  "weekly_peak_hour": 13,
+  "weekly_peak_mean_volume": 806.3124332334761,
+  "friday_mean_vs_other_days": -0.12834930369134423,
+  "nowruz_adjusted_difference_points": -18.456521361378307,
+  "holiday_adjusted_difference_points": -12.031778773218022,
+  "wet_weather_adjusted_difference_points": -3.08212545827378,
+  "regime_shift_review_sites": 3,
+  "intersection_1081": {
+    "volume_rank": 61,
+    "ranked_intersections": 74,
+    "functional_similarity_centrality_rank": 5,
+    "mean_approach_volumes": {
+      "south": 149.97816487114395,
+      "west": 60.43274437831685,
+      "north": 152.32127107873717,
+      "east": 75.97521949163331
+    },
+    "dominant_entry_approach": "north",
+    "dominant_approach_share": 0.34720469985528535,
+    "north_south_corridor_share": 0.6890684681271155,
+    "feb_to_mar_2020_change": -0.3419126920252732,
+    "apr_to_may_2020_change": 0.27389926525642116
+  }
+}
